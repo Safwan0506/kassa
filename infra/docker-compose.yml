@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kassa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kassa}
+      POSTGRES_USER: ${DB_USER:-kassa}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kassa_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-kassa}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    container_name: kassa-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-kassa}
+      DB_USER: ${DB_USER:-kassa}
+      DB_PASSWORD: ${DB_PASSWORD:-kassa_dev}
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_change_in_production}
+      JWT_EXPIRY: ${JWT_EXPIRY:-15m}
+      REFRESH_EXPIRY: ${REFRESH_EXPIRY:-7d}
+    ports:
+      - "8080:8080"
+
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    container_name: kassa-web
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8080
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: kassa-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pg_data:
+  caddy_data:
+  caddy_config:
