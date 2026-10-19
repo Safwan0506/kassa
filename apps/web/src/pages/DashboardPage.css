@@ -1,0 +1,106 @@
+/* ── Dashboard ── */
+
+.dashboard {
+  animation: slideUp var(--duration-normal) var(--ease-default);
+}
+
+.dashboard__greeting {
+  margin-bottom: 8px;
+}
+
+.dashboard__greeting h1 {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dashboard__greeting p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.dashboard__card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow var(--duration-fast) var(--ease-default);
+}
+
+.dashboard__card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard__card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dashboard__card-icon--green {
+  background-color: var(--color-accent-light);
+  color: var(--color-accent);
+}
+
+.dashboard__card-icon--ochre {
+  background-color: var(--color-secondary-light);
+  color: var(--color-secondary);
+}
+
+.dashboard__card h3 {
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dashboard__card p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+.dashboard__card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-muted);
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+@media (min-width: 640px) {
+  .dashboard__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard__greeting h1 {
+    font-size: var(--text-3xl);
+  }
+}

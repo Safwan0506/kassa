@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: kassa-api
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:h2:mem:kassa;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: false
+    clean-on-validation-error: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+kassa:
+  jwt:
+    secret: ${JWT_SECRET:kassa-dev-secret-key-that-is-at-least-32-bytes-long-for-hmac-sha256}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+logging:
+  level:
+    com.kassa: DEBUG
+    org.springframework.security: DEBUG
