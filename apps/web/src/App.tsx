@@ -1,9 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider } from './components/ui/Toast';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import ProductsPage from './pages/ProductsPage';
+import StockPage from './pages/StockPage';
 import type { ReactNode } from 'react';
 
 const queryClient = new QueryClient({
@@ -86,38 +89,39 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public */}
-            <Route
-              path="/login"
-              element={
-                <GuestRoute>
-                  <LoginPage />
-                </GuestRoute>
-              }
-            />
+        <ToastProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public */}
+              <Route
+                path="/login"
+                element={
+                  <GuestRoute>
+                    <LoginPage />
+                  </GuestRoute>
+                }
+              />
 
-            {/* Protected */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/dashboard" element={<DashboardPage />} />
-              {/* Phase 2 placeholder routes */}
-              <Route path="/sales" element={<PlaceholderPage title="Ventes" />} />
-              <Route path="/products" element={<PlaceholderPage title="Produits" />} />
-              <Route path="/stock" element={<PlaceholderPage title="Stock" />} />
-              <Route path="/team" element={<PlaceholderPage title="Equipe" />} />
-            </Route>
+              {/* Protected */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/sales" element={<PlaceholderPage title="Ventes" />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/stock" element={<StockPage />} />
+                <Route path="/team" element={<PlaceholderPage title="Equipe" />} />
+              </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </BrowserRouter>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
