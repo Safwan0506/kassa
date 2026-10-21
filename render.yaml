@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: kassa-api
+    env: java
+    plan: free
+    buildCommand: mvn clean package -DskipTests -q
+    startCommand: java -jar apps/api/target/api-0.1.0-SNAPSHOT.jar
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: JWT_SECRET
+        fromDatabase:
+          name: kassa-db
+          property: password
+      - key: CORS_ORIGINS
+        value: https://kassa.vercel.app
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kassa-db
+          property: connectionString
+      - key: DB_HOST
+        fromDatabase:
+          name: kassa-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: kassa-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: kassa-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: kassa-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: kassa-db
+          property: password
+
+databases:
+  - name: kassa-db
+    engine: postgres
+    version: "16"
+    plan: free

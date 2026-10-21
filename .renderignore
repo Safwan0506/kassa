@@ -1,0 +1,9 @@
+apps/web
+node_modules
+.git
+.env
+*.log
+README.md
+TESTS.md
+DEPLOYMENT.md
+VERCEL_RAILWAY_DEPLOY.md
