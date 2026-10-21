@@ -40,6 +40,10 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
+
     private String unit;
 
     @Column(name = "buy_price", precision = 12, scale = 2)

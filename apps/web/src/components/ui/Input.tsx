@@ -5,6 +5,7 @@ import {
   type ReactNode,
 } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import './Input.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -13,76 +14,35 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, icon, type, id, style, ...rest }, ref) => {
+  ({ label, error, icon, type, id, className, ...rest }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
 
+    const fieldClass = [
+      'input-group__field',
+      icon && 'input-group__field--has-icon',
+      isPassword && 'input-group__field--has-toggle',
+      error && 'input-group__field--error',
+      className,
+    ].filter(Boolean).join(' ');
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div className="input-group">
         {label && (
-          <label
-            htmlFor={inputId}
-            style={{
-              fontSize: 'var(--text-sm)',
-              fontWeight: 500,
-              color: 'var(--color-text)',
-            }}
-          >
+          <label htmlFor={inputId} className="input-group__label">
             {label}
           </label>
         )}
-        <div style={{ position: 'relative' }}>
+        <div className="input-group__wrapper">
           {icon && (
-            <span
-              style={{
-                position: 'absolute',
-                left: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--color-text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                pointerEvents: 'none',
-              }}
-            >
-              {icon}
-            </span>
+            <span className="input-group__icon">{icon}</span>
           )}
           <input
             ref={ref}
             id={inputId}
             type={isPassword && showPassword ? 'text' : type}
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              paddingLeft: icon ? '40px' : '14px',
-              paddingRight: isPassword ? '44px' : '14px',
-              fontSize: 'var(--text-sm)',
-              fontFamily: 'var(--font-body)',
-              color: 'var(--color-text)',
-              backgroundColor: 'var(--color-bg-surface)',
-              border: `1px solid ${error ? 'var(--color-error)' : 'var(--color-border)'}`,
-              borderRadius: 'var(--radius-md)',
-              transition: `border-color var(--duration-fast) var(--ease-default), box-shadow var(--duration-fast) var(--ease-default)`,
-              outline: 'none',
-              lineHeight: 'var(--leading-normal)',
-              ...style,
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = error
-                ? 'var(--color-error)'
-                : 'var(--color-accent)';
-              e.currentTarget.style.boxShadow = error
-                ? '0 0 0 3px var(--color-error-light)'
-                : '0 0 0 3px var(--color-accent-light)';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = error
-                ? 'var(--color-error)'
-                : 'var(--color-border)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
+            className={fieldClass}
             {...rest}
           />
           {isPassword && (
@@ -90,19 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               type="button"
               tabIndex={-1}
               onClick={() => setShowPassword((v) => !v)}
-              style={{
-                position: 'absolute',
-                right: '10px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '4px',
-                color: 'var(--color-text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-              }}
+              className="input-group__toggle"
               aria-label={
                 showPassword
                   ? 'Masquer le mot de passe'
@@ -114,15 +62,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <span
-            style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--color-error)',
-              lineHeight: 'var(--leading-normal)',
-            }}
-          >
-            {error}
-          </span>
+          <span className="input-group__error">{error}</span>
         )}
       </div>
     );

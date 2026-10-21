@@ -169,10 +169,10 @@ class ProductControllerTest {
         mockMvc.perform(get("/api/products")
                         .cookie(accessCookie)
                         .param("page", "0")
-                        .param("size", "10"))
+                        .param("limit", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.total").value(2));
     }
 
     @Test
@@ -233,8 +233,8 @@ class ProductControllerTest {
                         .cookie(accessCookie)
                         .param("q", "apple"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].name").value("Apple iPhone"));
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].name").value("Apple iPhone"));
     }
 
     @Test
@@ -251,9 +251,9 @@ class ProductControllerTest {
         mockMvc.perform(get("/api/products")
                         .cookie(otherAccessCookie)
                         .param("page", "0")
-                        .param("size", "10"))
+                        .param("limit", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(0));
+                .andExpect(jsonPath("$.total").value(0));
     }
 
     @Test

@@ -235,6 +235,172 @@ export interface StockAlert {
   shopName: string;
 }
 
+/* ── Customer ── */
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  organizationId: string;
+  createdAt: string;
+}
+
+export interface CreateCustomerDto {
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
+export type UpdateCustomerDto = Partial<CreateCustomerDto>;
+
+/* ── Invoice ── */
+
+export type InvoiceStatus = 'DRAFT' | 'VALIDATED' | 'PARTIALLY_PAID' | 'PAID' | 'CANCELLED';
+export type PaymentMethodType = 'CASH' | 'MOBILE_MONEY' | 'BANK_TRANSFER' | 'CARD' | 'OTHER';
+
+export interface InvoiceLineRequest {
+  productId: string;
+  quantity: number;
+}
+
+export interface CreateInvoiceDto {
+  shopId: string;
+  customerId?: string;
+  lines: InvoiceLineRequest[];
+  notes?: string;
+}
+
+export interface InvoiceLine {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  tvaRate: number;
+  lineTotal: number;
+}
+
+export interface PaymentInfo {
+  id: string;
+  method: PaymentMethodType;
+  amount: number;
+  reference: string | null;
+  notes: string | null;
+  receivedBy: string;
+  createdAt: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  status: InvoiceStatus;
+  shopId: string;
+  shopName: string;
+  customerId: string | null;
+  customerName: string | null;
+  subtotal: number;
+  taxTotal: number;
+  total: number;
+  amountPaid: number;
+  amountDue: number;
+  notes: string | null;
+  createdBy: string;
+  lines: InvoiceLine[];
+  payments: PaymentInfo[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoiceFilters {
+  page?: number;
+  limit?: number;
+  shopId?: string;
+  status?: InvoiceStatus;
+}
+
+export interface CreatePaymentDto {
+  invoiceId: string;
+  method: PaymentMethodType;
+  amount: number;
+  reference?: string;
+  notes?: string;
+}
+
+/* ── Reports ── */
+
+export interface RevenuePeriod {
+  period: string;
+  revenue: number;
+  tax: number;
+  count: number;
+}
+
+export interface RevenueReport {
+  totalRevenue: number;
+  totalTax: number;
+  totalPaid: number;
+  totalDue: number;
+  invoiceCount: number;
+  periods: RevenuePeriod[];
+}
+
+export interface TopProduct {
+  productId: string;
+  productName: string;
+  sku: string;
+  totalQuantity: number;
+  totalRevenue: number;
+}
+
+export interface MarginReport {
+  productId: string;
+  productName: string;
+  sku: string;
+  buyPrice: number;
+  sellPrice: number;
+  marginPerUnit: number;
+  marginPercent: number;
+  totalSold: number;
+  totalMargin: number;
+}
+
+export interface StockPoint {
+  date: string;
+  entries: number;
+  exits: number;
+  net: number;
+}
+
+export interface StockEvolution {
+  points: StockPoint[];
+}
+
+export interface ReportFilters {
+  shopId?: string;
+  from: string;
+  to: string;
+}
+
+/* ── Notifications ── */
+
+export interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  entityType: string | null;
+  entityId: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationCount {
+  unreadCount: number;
+}
+
 /* ── API namespaces ── */
 
 export const authApi = {
@@ -408,5 +574,160 @@ export const dashboardApi = {
     return request<StockMovement[]>(
       `/api/dashboard/recent-movements/${shopId}`,
     );
+  },
+};
+
+export const customersApi = {
+  list() {
+    return request<Customer[]>('/api/customers');
+  },
+
+  getById(id: string) {
+    return request<Customer>(`/api/customers/${id}`);
+  },
+
+  create(dto: CreateCustomerDto) {
+    return request<Customer>('/api/customers', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    });
+  },
+
+  update(id: string, dto: UpdateCustomerDto) {
+    return request<Customer>(`/api/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(dto),
+    });
+  },
+
+  delete(id: string) {
+    return request<void>(`/api/customers/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+export const invoicesApi = {
+  list(filters: InvoiceFilters = {}) {
+    const params = new URLSearchParams();
+    if (filters.page !== undefined) params.set('page', String(filters.page));
+    if (filters.limit !== undefined) params.set('limit', String(filters.limit));
+    if (filters.shopId) params.set('shopId', filters.shopId);
+    if (filters.status) params.set('status', filters.status);
+    const qs = params.toString();
+    return request<PaginatedResponse<Invoice>>(
+      `/api/invoices${qs ? `?${qs}` : ''}`,
+    );
+  },
+
+  getById(id: string) {
+    return request<Invoice>(`/api/invoices/${id}`);
+  },
+
+  create(dto: CreateInvoiceDto) {
+    return request<Invoice>('/api/invoices', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    });
+  },
+
+  validate(id: string) {
+    return request<Invoice>(`/api/invoices/${id}/validate`, {
+      method: 'POST',
+    });
+  },
+
+  cancel(id: string) {
+    return request<Invoice>(`/api/invoices/${id}/cancel`, {
+      method: 'POST',
+    });
+  },
+
+  addPayment(dto: CreatePaymentDto) {
+    return request<Invoice>('/api/invoices/payments', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    });
+  },
+
+  async downloadPdf(id: string): Promise<Blob> {
+    const response = await fetch(`/api/invoices/${id}/pdf`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw { status: response.status, message: 'PDF download failed' };
+    return response.blob();
+  },
+
+  async downloadDeliveryNote(id: string): Promise<Blob> {
+    const response = await fetch(`/api/invoices/${id}/delivery-note`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw { status: response.status, message: 'PDF download failed' };
+    return response.blob();
+  },
+};
+
+export const reportsApi = {
+  revenue(filters: ReportFilters) {
+    const params = new URLSearchParams();
+    params.set('from', filters.from);
+    params.set('to', filters.to);
+    if (filters.shopId) params.set('shopId', filters.shopId);
+    return request<RevenueReport>(`/api/reports/revenue?${params}`);
+  },
+
+  topProducts(filters: ReportFilters & { limit?: number }) {
+    const params = new URLSearchParams();
+    params.set('from', filters.from);
+    params.set('to', filters.to);
+    if (filters.shopId) params.set('shopId', filters.shopId);
+    if (filters.limit) params.set('limit', String(filters.limit));
+    return request<TopProduct[]>(`/api/reports/top-products?${params}`);
+  },
+
+  margins(filters: ReportFilters) {
+    const params = new URLSearchParams();
+    params.set('from', filters.from);
+    params.set('to', filters.to);
+    if (filters.shopId) params.set('shopId', filters.shopId);
+    return request<MarginReport[]>(`/api/reports/margins?${params}`);
+  },
+
+  stockEvolution(filters: ReportFilters) {
+    const params = new URLSearchParams();
+    params.set('from', filters.from);
+    params.set('to', filters.to);
+    if (filters.shopId) params.set('shopId', filters.shopId);
+    return request<StockEvolution>(`/api/reports/stock-evolution?${params}`);
+  },
+};
+
+export const notificationsApi = {
+  list(page = 0, limit = 20) {
+    return request<PaginatedResponse<NotificationItem>>(
+      `/api/notifications?page=${page}&limit=${limit}`,
+    );
+  },
+
+  count() {
+    return request<NotificationCount>('/api/notifications/count');
+  },
+
+  markRead(id: string) {
+    return request<void>(`/api/notifications/${id}/read`, {
+      method: 'POST',
+    });
+  },
+
+  markAllRead() {
+    return request<void>('/api/notifications/read-all', {
+      method: 'POST',
+    });
+  },
+
+  generateAlerts() {
+    return request<void>('/api/notifications/generate-alerts', {
+      method: 'POST',
+    });
   },
 };

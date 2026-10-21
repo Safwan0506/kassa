@@ -1,5 +1,6 @@
 package com.kassa.api.controller;
 
+import com.kassa.api.dto.PaginatedResponse;
 import com.kassa.api.dto.product.ProductRequest;
 import com.kassa.api.dto.product.ProductResponse;
 import com.kassa.api.entity.ShopRole;
@@ -7,7 +8,7 @@ import com.kassa.api.security.SecurityHelper;
 import com.kassa.api.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,16 @@ public class ProductController {
     private final SecurityHelper securityHelper;
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> getAll(Authentication authentication,
-                                                         Pageable pageable) {
+    public ResponseEntity<PaginatedResponse<ProductResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            Authentication authentication) {
         securityHelper.requireRole(authentication,
                 ShopRole.PROPRIETAIRE, ShopRole.GERANT, ShopRole.MAGASINIER);
         UUID orgId = securityHelper.getCurrentOrganizationId(authentication);
-        return ResponseEntity.ok(productService.getAllByOrganization(orgId, pageable));
+        Pageable pageable = PageRequest.of(page, limit);
+        return ResponseEntity.ok(PaginatedResponse.from(
+                productService.getAllByOrganization(orgId, pageable)));
     }
 
     @GetMapping("/{id}")
@@ -43,17 +48,20 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<ProductResponse>> search(
+    public ResponseEntity<PaginatedResponse<ProductResponse>> search(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String sku,
             @RequestParam(required = false) UUID category,
             @RequestParam(required = false) Boolean active,
-            Authentication authentication,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            Authentication authentication) {
         securityHelper.requireRole(authentication,
                 ShopRole.PROPRIETAIRE, ShopRole.GERANT, ShopRole.MAGASINIER);
         UUID orgId = securityHelper.getCurrentOrganizationId(authentication);
-        return ResponseEntity.ok(productService.search(orgId, q, sku, category, active, pageable));
+        Pageable pageable = PageRequest.of(page, limit);
+        return ResponseEntity.ok(PaginatedResponse.from(
+                productService.search(orgId, q, sku, category, active, pageable)));
     }
 
     @PostMapping

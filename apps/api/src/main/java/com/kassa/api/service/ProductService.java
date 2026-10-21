@@ -5,11 +5,13 @@ import com.kassa.api.dto.product.ProductResponse;
 import com.kassa.api.entity.Category;
 import com.kassa.api.entity.Organization;
 import com.kassa.api.entity.Product;
+import com.kassa.api.entity.Supplier;
 import com.kassa.api.exception.BusinessException;
 import com.kassa.api.exception.ResourceNotFoundException;
 import com.kassa.api.repository.CategoryRepository;
 import com.kassa.api.repository.OrganizationRepository;
 import com.kassa.api.repository.ProductRepository;
+import com.kassa.api.repository.SupplierRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final SupplierRepository supplierRepository;
     private final OrganizationRepository organizationRepository;
 
     @Transactional(readOnly = true)
@@ -77,6 +80,12 @@ public class ProductService {
             product.setCategory(category);
         }
 
+        if (request.getSupplierId() != null) {
+            Supplier supplier = supplierRepository.findByIdAndOrganizationId(request.getSupplierId(), organizationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Supplier", request.getSupplierId().toString()));
+            product.setSupplier(supplier);
+        }
+
         product = productRepository.save(product);
         return toResponse(product);
     }
@@ -120,6 +129,14 @@ public class ProductService {
             product.setCategory(null);
         }
 
+        if (request.getSupplierId() != null) {
+            Supplier supplier = supplierRepository.findByIdAndOrganizationId(request.getSupplierId(), organizationId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Supplier", request.getSupplierId().toString()));
+            product.setSupplier(supplier);
+        } else {
+            product.setSupplier(null);
+        }
+
         product = productRepository.save(product);
         return toResponse(product);
     }
@@ -140,6 +157,8 @@ public class ProductService {
                 .description(product.getDescription())
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                .supplierId(product.getSupplier() != null ? product.getSupplier().getId() : null)
+                .supplierName(product.getSupplier() != null ? product.getSupplier().getName() : null)
                 .unit(product.getUnit())
                 .buyPrice(product.getBuyPrice())
                 .sellPrice(product.getSellPrice())

@@ -27,6 +27,8 @@ public class ProductRequest {
 
     private UUID categoryId;
 
+    private UUID supplierId;
+
     private String unit;
 
     private BigDecimal buyPrice;

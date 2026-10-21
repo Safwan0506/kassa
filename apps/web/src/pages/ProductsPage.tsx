@@ -317,7 +317,7 @@ export default function ProductsPage() {
                       <th>Prix de vente</th>
                       <th>Stock</th>
                       <th>Statut</th>
-                      <th style={{ width: '80px' }}>Actions</th>
+                      <th className="products__table th--actions">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -401,7 +401,7 @@ export default function ProductsPage() {
                       <span>Stock</span>
                       <span className="products__card-row-value">{p.currentStock}</span>
                     </div>
-                    <div className="products__actions" style={{ marginTop: 4, justifyContent: 'flex-end' }}>
+                    <div className="products__actions products__actions--mobile">
                       <button
                         className="products__action-btn"
                         onClick={() => openEdit(p)}

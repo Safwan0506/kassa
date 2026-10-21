@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   RotateCcw,
   ArrowRightLeft,
+  ScanBarcode,
 } from 'lucide-react';
 import { stockApi, productsApi } from '../lib/api';
 import type {
@@ -30,6 +31,7 @@ import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { SkeletonTable } from '../components/ui/Skeleton';
+import BarcodeScanner from '../components/BarcodeScanner';
 import './StockPage.css';
 
 /* ── Types ── */
@@ -124,6 +126,8 @@ export default function StockPage() {
   const [movementModalOpen, setMovementModalOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanTarget, setScanTarget] = useState<'movement' | 'transfer'>('movement');
 
   /* ── Forms ── */
   const movementForm = useForm<MovementFormData>({
@@ -220,6 +224,22 @@ export default function StockPage() {
     }
   };
 
+  /* ── Barcode scan handler ── */
+  const handleBarcodeScan = (barcode: string) => {
+    setScannerOpen(false);
+    const product = products.find((p) => p.barcode === barcode || p.sku === barcode);
+    if (product) {
+      if (scanTarget === 'movement') {
+        movementForm.setValue('productId', product.id);
+      } else {
+        transferForm.setValue('productId', product.id);
+      }
+      toast({ title: `Produit trouve : ${product.name}`, variant: 'success' });
+    } else {
+      toast({ title: `Aucun produit avec le code ${barcode}`, variant: 'warning' });
+    }
+  };
+
   /* ── Open movement modal ── */
   const openMovementModal = () => {
     movementForm.reset({ productId: '', type: 'ENTRY', quantity: 1, reason: '' });
@@ -313,17 +333,11 @@ export default function StockPage() {
                   <tbody>
                     {filteredLevels.map((l) => (
                       <tr key={l.productId}>
-                        <td style={{ fontWeight: 500 }}>{l.productName}</td>
+                        <td className="stock__table-cell--bold">{l.productName}</td>
                         <td>{l.categoryName ?? '—'}</td>
                         <td>
                           <span className="stock__qty">{l.quantity}</span>
-                          <span
-                            style={{
-                              fontSize: 'var(--text-xs)',
-                              color: 'var(--color-text-muted)',
-                              marginLeft: 4,
-                            }}
-                          >
+                          <span className="stock__table-cell--unit">
                             {l.unit}
                           </span>
                         </td>
@@ -354,7 +368,7 @@ export default function StockPage() {
                     </div>
                     <div className="stock__level-card-row">
                       <span>Seuil d&apos;alerte</span>
-                      <span style={{ fontFamily: 'var(--font-mono)' }}>{l.alertThreshold}</span>
+                      <span className="stock__level-card-row--mono">{l.alertThreshold}</span>
                     </div>
                   </div>
                 ))}
@@ -431,7 +445,7 @@ export default function StockPage() {
                         <td>
                           <MovementBadge type={m.type} />
                         </td>
-                        <td style={{ fontWeight: 500 }}>{m.productName}</td>
+                        <td className="stock__table-cell--bold">{m.productName}</td>
                         <td>
                           <span
                             className={`stock__qty stock__qty--sm ${
@@ -446,24 +460,10 @@ export default function StockPage() {
                             {m.quantity}
                           </span>
                         </td>
-                        <td
-                          style={{
-                            fontSize: 'var(--text-xs)',
-                            color: 'var(--color-text-muted)',
-                            maxWidth: 200,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
+                        <td className="stock__table-cell--reason">
                           {m.reason || '—'}
                         </td>
-                        <td
-                          style={{
-                            fontSize: 'var(--text-xs)',
-                            color: 'var(--color-text-muted)',
-                          }}
-                        >
+                        <td className="stock__table-cell--muted">
                           {formatDate(m.createdAt)}
                         </td>
                         <td>{m.userName}</td>
@@ -500,11 +500,11 @@ export default function StockPage() {
                       <span>{formatDate(m.createdAt)}</span>
                     </div>
                     {m.reason && (
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                      <div className="stock__movement-card-meta">
                         {m.reason}
                       </div>
                     )}
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    <div className="stock__movement-card-meta">
                       Par {m.userName}
                     </div>
                   </div>
@@ -559,30 +559,16 @@ export default function StockPage() {
                   <tbody>
                     {transfers.map((t) => (
                       <tr key={t.id}>
-                        <td style={{ fontWeight: 500 }}>{t.productName}</td>
+                        <td className="stock__table-cell--bold">{t.productName}</td>
                         <td>{t.fromShopName}</td>
                         <td>{t.toShopName}</td>
                         <td>
                           <span className="stock__qty stock__qty--sm">{t.quantity}</span>
                         </td>
-                        <td
-                          style={{
-                            fontSize: 'var(--text-xs)',
-                            color: 'var(--color-text-muted)',
-                            maxWidth: 200,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
+                        <td className="stock__table-cell--reason">
                           {t.reason || '—'}
                         </td>
-                        <td
-                          style={{
-                            fontSize: 'var(--text-xs)',
-                            color: 'var(--color-text-muted)',
-                          }}
-                        >
+                        <td className="stock__table-cell--muted">
                           {formatDate(t.createdAt)}
                         </td>
                         <td>{t.userName}</td>
@@ -607,7 +593,7 @@ export default function StockPage() {
                     </div>
                     <div className="stock__transfer-card-row">
                       <span>Quantite</span>
-                      <span style={{ fontFamily: 'var(--font-mono)' }}>{t.quantity}</span>
+                      <span className="stock__transfer-card-row--mono">{t.quantity}</span>
                     </div>
                     {t.reason && (
                       <div className="stock__transfer-card-row">
@@ -641,14 +627,19 @@ export default function StockPage() {
         <form onSubmit={movementForm.handleSubmit(onSubmitMovement)} className="stock__form" noValidate>
           <div className="stock__form-field">
             <label htmlFor="mv-product">Produit *</label>
-            <select id="mv-product" {...movementForm.register('productId')}>
-              <option value="">Selectionner un produit</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.sku})
-                </option>
-              ))}
-            </select>
+            <div className="stock__form-field-row">
+              <select id="mv-product" {...movementForm.register('productId')}>
+                <option value="">Selectionner un produit</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.sku})
+                  </option>
+                ))}
+              </select>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { setScanTarget('movement'); setScannerOpen(true); }}>
+                <ScanBarcode size={16} />
+              </Button>
+            </div>
             {movementForm.formState.errors.productId && (
               <span className="stock__form-field-error">
                 {movementForm.formState.errors.productId.message}
@@ -701,6 +692,14 @@ export default function StockPage() {
         </form>
       </Modal>
 
+      {/* ── Barcode Scanner ── */}
+      {scannerOpen && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setScannerOpen(false)}
+        />
+      )}
+
       {/* ── Transfer Modal ── */}
       <Modal
         open={transferModalOpen}
@@ -711,14 +710,19 @@ export default function StockPage() {
         <form onSubmit={transferForm.handleSubmit(onSubmitTransfer)} className="stock__form" noValidate>
           <div className="stock__form-field">
             <label htmlFor="tr-product">Produit *</label>
-            <select id="tr-product" {...transferForm.register('productId')}>
-              <option value="">Selectionner un produit</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.sku})
-                </option>
-              ))}
-            </select>
+            <div className="stock__form-field-row">
+              <select id="tr-product" {...transferForm.register('productId')}>
+                <option value="">Selectionner un produit</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.sku})
+                  </option>
+                ))}
+              </select>
+              <Button type="button" variant="secondary" size="sm" onClick={() => { setScanTarget('transfer'); setScannerOpen(true); }}>
+                <ScanBarcode size={16} />
+              </Button>
+            </div>
             {transferForm.formState.errors.productId && (
               <span className="stock__form-field-error">
                 {transferForm.formState.errors.productId.message}

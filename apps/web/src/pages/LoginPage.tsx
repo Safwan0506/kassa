@@ -151,7 +151,7 @@ export default function LoginPage() {
               variant="primary"
               size="lg"
               loading={isSubmitting}
-              style={{ width: '100%', marginTop: '8px' }}
+              className="login-form__submit"
             >
               Se connecter
             </Button>

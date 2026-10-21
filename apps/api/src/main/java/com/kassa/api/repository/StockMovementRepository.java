@@ -9,10 +9,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface StockMovementRepository extends JpaRepository<StockMovement, UUID> {
+
+    long countByShopIdAndCreatedAtAfter(UUID shopId, Instant after);
+
+    List<StockMovement> findTop10ByShopIdOrderByCreatedAtDesc(UUID shopId);
+
+    List<StockMovement> findByShopIdAndCreatedAtBetweenOrderByCreatedAtAsc(UUID shopId, Instant from, Instant to);
 
     Page<StockMovement> findByShopIdAndProductIdOrderByCreatedAtDesc(UUID shopId, UUID productId, Pageable pageable);
 

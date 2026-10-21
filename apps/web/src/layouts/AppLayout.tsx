@@ -5,14 +5,15 @@ import {
   ShoppingCart,
   Package,
   Warehouse,
+  BarChart3,
   Users,
-  Bell,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationCenter from '../components/NotificationCenter';
 import './AppLayout.css';
 
 const NAV_ITEMS = [
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { to: '/sales', icon: ShoppingCart, label: 'Ventes' },
   { to: '/products', icon: Package, label: 'Produits' },
   { to: '/stock', icon: Warehouse, label: 'Stock' },
+  { to: '/reports', icon: BarChart3, label: 'Rapports' },
   { to: '/team', icon: Users, label: 'Equipe' },
 ] as const;
 
@@ -123,13 +125,10 @@ export default function AppLayout() {
           </div>
 
           <div className="app-header__right">
-            <button className="app-header__icon-btn" aria-label="Notifications">
-              <Bell size={20} />
-              <span className="app-header__notification-dot" />
-            </button>
+            <NotificationCenter />
 
             <button className="app-header__avatar-btn">
-              <div className="sidebar__avatar" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>
+              <div className="sidebar__avatar sidebar__avatar--sm">
                 {user ? getInitials(`${user.firstName} ${user.lastName}`) : '?'}
               </div>
               <span className="app-header__role-badge">

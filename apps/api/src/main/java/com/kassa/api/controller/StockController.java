@@ -1,5 +1,6 @@
 package com.kassa.api.controller;
 
+import com.kassa.api.dto.PaginatedResponse;
 import com.kassa.api.dto.stock.*;
 import com.kassa.api.entity.MovementType;
 import com.kassa.api.entity.ShopRole;
@@ -8,7 +9,7 @@ import com.kassa.api.security.SecurityHelper;
 import com.kassa.api.service.StockService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,12 +85,13 @@ public class StockController {
     }
 
     @GetMapping("/movements")
-    public ResponseEntity<Page<StockMovementResponse>> getMovements(
+    public ResponseEntity<PaginatedResponse<StockMovementResponse>> getMovements(
             @RequestParam UUID shopId,
             @RequestParam(required = false) UUID productId,
             @RequestParam(required = false) String type,
-            Authentication authentication,
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            Authentication authentication) {
         securityHelper.requireRole(authentication,
                 ShopRole.PROPRIETAIRE, ShopRole.GERANT, ShopRole.MAGASINIER);
 
@@ -102,6 +104,8 @@ public class StockController {
             }
         }
 
-        return ResponseEntity.ok(stockService.getMovements(shopId, productId, movementType, pageable));
+        Pageable pageable = PageRequest.of(page, limit);
+        return ResponseEntity.ok(PaginatedResponse.from(
+                stockService.getMovements(shopId, productId, movementType, pageable)));
     }
 }

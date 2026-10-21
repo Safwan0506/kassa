@@ -22,6 +22,8 @@ public class ProductResponse {
     private String description;
     private UUID categoryId;
     private String categoryName;
+    private UUID supplierId;
+    private String supplierName;
     private String unit;
     private BigDecimal buyPrice;
     private BigDecimal sellPrice;

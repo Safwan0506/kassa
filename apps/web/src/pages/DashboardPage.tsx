@@ -49,7 +49,7 @@ function MovementBadge({ type }: { type: MovementType }) {
 function KpiSkeleton() {
   return (
     <div className="dashboard__kpi-skeleton">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="dashboard__kpi-skeleton-inner">
         <SkeletonBox width={80} height={36} borderRadius="var(--radius-md)" />
         <SkeletonBox width={120} height={14} borderRadius="var(--radius-sm)" />
       </div>
@@ -94,7 +94,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       <AlertTriangle size={32} className="dashboard__error-icon" />
       <p className="dashboard__error-message">{message}</p>
       <button className="dashboard__error-retry" onClick={onRetry}>
-        <RotateCcw size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+        <RotateCcw size={14} className="dashboard__error-retry-icon" />
         Reessayer
       </button>
     </div>
@@ -236,8 +236,8 @@ export default function DashboardPage() {
                     <tbody>
                       {alerts.map((a) => (
                         <tr key={`${a.productId}-${a.shopId}`}>
-                          <td style={{ fontWeight: 500 }}>{a.productName}</td>
-                          <td style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)' }}>
+                          <td className="dashboard__table-cell--bold">{a.productName}</td>
+                          <td className="dashboard__table-cell--sku">
                             {a.sku}
                           </td>
                           <td>
@@ -320,7 +320,7 @@ export default function DashboardPage() {
                           <td>
                             <MovementBadge type={m.type} />
                           </td>
-                          <td style={{ fontWeight: 500 }}>{m.productName}</td>
+                          <td className="dashboard__table-cell--bold">{m.productName}</td>
                           <td>
                             <span
                               className={`dashboard__table-qty ${
@@ -335,7 +335,7 @@ export default function DashboardPage() {
                               {m.quantity}
                             </span>
                           </td>
-                          <td style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                          <td className="dashboard__table-cell--muted">
                             {formatDate(m.createdAt)}
                           </td>
                           <td>{m.userName}</td>
@@ -371,7 +371,7 @@ export default function DashboardPage() {
                         </span>
                         <span>{formatDate(m.createdAt)}</span>
                       </div>
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                      <div className="dashboard__movement-card-footer">
                         Par {m.userName}
                       </div>
                     </div>

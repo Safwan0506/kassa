@@ -18,7 +18,7 @@
   background-color: var(--color-bg-surface);
   border-right: 1px solid var(--color-border);
   flex-direction: column;
-  z-index: 30;
+  z-index: var(--z-sticky);
   transition: width var(--duration-normal) var(--ease-default);
 }
 
@@ -29,15 +29,15 @@
 .sidebar__header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 20px 16px;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   min-height: 64px;
 }
 
 .sidebar--collapsed .sidebar__header {
   justify-content: center;
-  padding: 20px 12px 16px;
+  padding: var(--space-5) var(--space-3) var(--space-4);
 }
 
 .sidebar__logo {
@@ -45,7 +45,7 @@
   font-size: var(--text-xl);
   font-weight: 700;
   color: var(--color-accent);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight);
   white-space: nowrap;
 }
 
@@ -67,18 +67,18 @@
 
 .sidebar__nav {
   flex: 1;
-  padding: 12px 8px;
+  padding: var(--space-3) var(--space-2);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-0-5);
   overflow-y: auto;
 }
 
 .sidebar__nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--space-3);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -97,6 +97,11 @@
   color: var(--color-text);
 }
 
+.sidebar__nav-item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
 .sidebar__nav-item--active {
   background-color: var(--color-accent-light);
   color: var(--color-accent);
@@ -109,7 +114,7 @@
 
 .sidebar--collapsed .sidebar__nav-item {
   justify-content: center;
-  padding: 10px;
+  padding: var(--space-2-5);
 }
 
 .sidebar--collapsed .sidebar__nav-label {
@@ -117,15 +122,15 @@
 }
 
 .sidebar__footer {
-  padding: 12px;
+  padding: var(--space-3);
   border-top: 1px solid var(--color-border);
 }
 
 .sidebar__user {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
+  gap: var(--space-3);
+  padding: var(--space-2);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-default);
@@ -148,7 +153,7 @@
   height: 32px;
   border-radius: var(--radius-full);
   background-color: var(--color-accent);
-  color: #FFFFFF;
+  color: var(--color-text-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,6 +161,12 @@
   font-size: var(--text-sm);
   font-weight: 600;
   flex-shrink: 0;
+}
+
+.sidebar__avatar--sm {
+  width: 28px;
+  height: 28px;
+  font-size: var(--text-xs);
 }
 
 .sidebar__user-name {
@@ -175,7 +186,7 @@
 .sidebar__collapse-btn {
   display: none;
   position: absolute;
-  top: 20px;
+  top: var(--space-5);
   right: -12px;
   width: 24px;
   height: 24px;
@@ -196,6 +207,11 @@
   color: var(--color-text);
 }
 
+.sidebar__collapse-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 /* ── Main content area ── */
 
 .app-main {
@@ -210,21 +226,21 @@
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: var(--z-sticky);
   height: var(--header-height);
   background-color: var(--color-bg-surface);
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  gap: 16px;
+  padding: 0 var(--space-5);
+  gap: var(--space-4);
 }
 
 .app-header__left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .app-header__mobile-logo {
@@ -233,14 +249,14 @@
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-accent);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight);
 }
 
 .app-header__shop-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: var(--space-2);
+  padding: var(--space-1-5) var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background-color: var(--color-bg-surface);
@@ -258,7 +274,7 @@
 .app-header__right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .app-header__icon-btn {
@@ -281,23 +297,17 @@
   color: var(--color-text);
 }
 
-.app-header__notification-dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  background-color: var(--color-error);
-  border-radius: 50%;
-  border: 2px solid var(--color-bg-surface);
+.app-header__icon-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .app-header__avatar-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px;
-  padding-right: 8px;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  padding-right: var(--space-2);
   border-radius: var(--radius-full);
   border: none;
   background: none;
@@ -310,11 +320,11 @@
 }
 
 .app-header__role-badge {
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
+  letter-spacing: var(--tracking-wide);
+  padding: var(--space-0-5) var(--space-1-5);
   border-radius: var(--radius-sm);
   background-color: var(--color-accent-light);
   color: var(--color-accent);
@@ -324,8 +334,8 @@
 
 .app-content {
   flex: 1;
-  padding: 24px 20px;
-  padding-bottom: calc(24px + var(--bottom-bar-height));
+  padding: var(--space-6) var(--space-5);
+  padding-bottom: calc(var(--space-6) + var(--bottom-bar-height));
 }
 
 /* ── Bottom Tab Bar (mobile) ── */
@@ -339,10 +349,10 @@
   height: var(--bottom-bar-height);
   background-color: var(--color-bg-surface);
   border-top: 1px solid var(--color-border);
-  z-index: 30;
+  z-index: var(--z-sticky);
   align-items: center;
   justify-content: space-around;
-  padding: 0 4px;
+  padding: 0 var(--space-1);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -351,17 +361,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 12px;
+  gap: var(--space-0-5);
+  padding: var(--space-1-5) var(--space-3);
   border: none;
   background: none;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 10px;
+  font-size: var(--text-2xs);
   font-weight: 500;
   transition: color var(--duration-fast) var(--ease-default);
   text-decoration: none;
   min-width: 56px;
+}
+
+.bottom-bar__item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
 }
 
 .bottom-bar__item--active {
@@ -370,7 +386,6 @@
 
 /* ── Responsive ── */
 
-/* Tablet: 768-1023 */
 @media (min-width: 768px) {
   .sidebar {
     display: flex;
@@ -385,12 +400,12 @@
 
   .sidebar .sidebar__header {
     justify-content: center;
-    padding: 20px 12px 16px;
+    padding: var(--space-5) var(--space-3) var(--space-4);
   }
 
   .sidebar .sidebar__nav-item {
     justify-content: center;
-    padding: 10px;
+    padding: var(--space-2-5);
   }
 
   .sidebar .sidebar__user {
@@ -414,11 +429,10 @@
   }
 
   .app-content {
-    padding-bottom: 24px;
+    padding-bottom: var(--space-6);
   }
 }
 
-/* Tablet expanded sidebar */
 @media (min-width: 768px) {
   .sidebar--expanded {
     width: var(--sidebar-width);
@@ -432,12 +446,12 @@
 
   .sidebar--expanded .sidebar__header {
     justify-content: flex-start;
-    padding: 20px 20px 16px;
+    padding: var(--space-5) var(--space-5) var(--space-4);
   }
 
   .sidebar--expanded .sidebar__nav-item {
     justify-content: flex-start;
-    padding: 10px 12px;
+    padding: var(--space-2-5) var(--space-3);
   }
 
   .sidebar--expanded .sidebar__user {
@@ -449,7 +463,6 @@
   }
 }
 
-/* Desktop: >=1024 */
 @media (min-width: 1024px) {
   .sidebar {
     display: flex;
@@ -464,12 +477,12 @@
 
   .sidebar .sidebar__header {
     justify-content: flex-start;
-    padding: 20px 20px 16px;
+    padding: var(--space-5) var(--space-5) var(--space-4);
   }
 
   .sidebar .sidebar__nav-item {
     justify-content: flex-start;
-    padding: 10px 12px;
+    padding: var(--space-2-5) var(--space-3);
   }
 
   .sidebar .sidebar__user {
@@ -493,8 +506,7 @@
   }
 
   .app-content {
-    padding: 32px;
-    padding-bottom: 32px;
+    padding: var(--space-8);
   }
 
   .app-header__mobile-logo {
@@ -502,7 +514,6 @@
   }
 }
 
-/* Mobile header adjustments */
 @media (max-width: 767px) {
   .app-header__mobile-logo {
     display: block;
