@@ -222,6 +222,24 @@
   color: var(--color-text-muted);
 }
 
+/* ── Demo banner ── */
+
+.login-demo-banner {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-secondary-light);
+  border: 1px solid rgba(185, 121, 31, 0.3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  text-align: center;
+  line-height: var(--leading-relaxed);
+}
+
+.login-demo-banner strong {
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
 /* ── Form ── */
 
 .login-form {

@@ -113,6 +113,11 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Demo credentials banner */}
+          <div className="login-demo-banner">
+            <strong>Mode démo :</strong> admin@kassa.com / Kassa2024!
+          </div>
+
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="login-form"
