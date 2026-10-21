@@ -8,6 +8,9 @@ import {
   X,
   Download,
   Truck,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   invoicesApi,
@@ -23,7 +26,9 @@ import type {
   PaymentMethodType,
 } from '../lib/api';
 import { formatCFA, formatDate } from '../lib/format';
+import { useDebounce } from '../lib/hooks';
 import { useAuth } from '../contexts/AuthContext';
+import { highestRole, can } from '../lib/rbac';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
@@ -63,11 +68,23 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
 export default function SalesPage() {
   const { user } = useAuth();
   const { addToast } = useToast();
-  const shopId = user?.shops?.[0]?.shopId;
+  const shops = user?.shops ?? [];
+  const role = highestRole(shops.map((s) => s.role));
+  const canCreateSale = can(role, 'sales:create');
+  const canValidateSale = can(role, 'sales:validate');
+  const canCancelSale = can(role, 'sales:cancel');
+  const [selectedShopId, setSelectedShopId] = useState(shops[0]?.shopId ?? '');
+  const shopId = selectedShopId || shops[0]?.shopId;
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | ''>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(0);
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
@@ -81,19 +98,37 @@ export default function SalesPage() {
       const res = await invoicesApi.list({
         shopId,
         status: statusFilter || undefined,
-        limit: 50,
+        page,
+        limit: 20,
       });
       setInvoices(res.data);
+      setTotalPages(res.totalPages);
     } catch {
       addToast('Erreur lors du chargement des factures', 'error');
     } finally {
       setLoading(false);
     }
-  }, [shopId, statusFilter, addToast]);
+  }, [shopId, statusFilter, page, addToast]);
 
   useEffect(() => {
     fetchInvoices();
   }, [fetchInvoices]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter, selectedShopId]);
+
+  const filtered = invoices.filter((inv) => {
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      const matchesNumber = inv.invoiceNumber.toLowerCase().includes(q);
+      const matchesCustomer = inv.customerName?.toLowerCase().includes(q);
+      if (!matchesNumber && !matchesCustomer) return false;
+    }
+    if (dateFrom && inv.createdAt < dateFrom) return false;
+    if (dateTo && inv.createdAt.slice(0, 10) > dateTo) return false;
+    return true;
+  });
 
   const openDetail = async (invoice: Invoice) => {
     try {
@@ -133,14 +168,38 @@ export default function SalesPage() {
     <div className="sales">
       <div className="sales__header">
         <h1 className="sales__title">Ventes</h1>
-        <Button onClick={() => setShowCreate(true)}>
-          <Plus size={16} /> Nouvelle facture
-        </Button>
+        {canCreateSale && (
+          <Button onClick={() => setShowCreate(true)}>
+            <Plus size={16} /> Nouvelle facture
+          </Button>
+        )}
       </div>
 
       {/* Toolbar */}
       <div className="sales__toolbar">
         <div className="sales__toolbar-left">
+          <div className="sales__search">
+            <span className="sales__search-icon">
+              <Search size={16} />
+            </span>
+            <input
+              type="text"
+              placeholder="Rechercher par numero ou client..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          {shops.length > 1 && (
+            <select
+              className="sales__filter-select"
+              value={selectedShopId}
+              onChange={(e) => setSelectedShopId(e.target.value)}
+            >
+              {shops.map((s) => (
+                <option key={s.shopId} value={s.shopId}>{s.shopName}</option>
+              ))}
+            </select>
+          )}
           <select
             className="sales__filter-select"
             value={statusFilter}
@@ -153,18 +212,34 @@ export default function SalesPage() {
             <option value="PAID">Payee</option>
             <option value="CANCELLED">Annulee</option>
           </select>
+          <input
+            type="date"
+            className="sales__filter-date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            title="Date debut"
+          />
+          <input
+            type="date"
+            className="sales__filter-date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            title="Date fin"
+          />
         </div>
       </div>
 
       {/* Invoice list */}
       {loading ? (
         <SkeletonTable rows={5} cols={6} />
-      ) : invoices.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="sales__empty">
           <FileText size={48} className="sales__empty-icon" />
           <div className="sales__empty-title">Aucune facture</div>
           <div className="sales__empty-desc">
-            Creez votre premiere facture pour commencer.
+            {debouncedSearch || dateFrom || dateTo
+              ? 'Aucune facture ne correspond a vos criteres.'
+              : 'Creez votre premiere facture pour commencer.'}
           </div>
         </div>
       ) : (
@@ -183,7 +258,7 @@ export default function SalesPage() {
                 </tr>
               </thead>
               <tbody>
-                {invoices.map((inv) => (
+                {filtered.map((inv) => (
                   <tr key={inv.id} onClick={() => openDetail(inv)}>
                     <td className="sales__table-cell--mono-bold">
                       {inv.invoiceNumber}
@@ -205,7 +280,7 @@ export default function SalesPage() {
 
           {/* Mobile cards */}
           <div className="sales__card-list">
-            {invoices.map((inv) => (
+            {filtered.map((inv) => (
               <div key={inv.id} className="sales__card" onClick={() => openDetail(inv)}>
                 <div className="sales__card-header">
                   <span className="sales__card-number">{inv.invoiceNumber}</span>
@@ -219,6 +294,31 @@ export default function SalesPage() {
               </div>
             ))}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="sales__pagination">
+              <button
+                className="sales__page-btn"
+                disabled={page <= 0}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                aria-label="Page precedente"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="sales__page-info">
+                Page {page + 1} sur {totalPages}
+              </span>
+              <button
+                className="sales__page-btn"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                aria-label="Page suivante"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -246,6 +346,8 @@ export default function SalesPage() {
             onValidate={handleValidate}
             onCancel={handleCancel}
             onPayment={() => setShowPayment(true)}
+            canValidate={canValidateSale}
+            canCancel={canCancelSale}
           />
         )}
       </Modal>
@@ -420,11 +522,15 @@ function InvoiceDetail({
   onValidate,
   onCancel,
   onPayment,
+  canValidate = true,
+  canCancel = true,
 }: {
   invoice: Invoice;
   onValidate: () => void;
   onCancel: () => void;
   onPayment: () => void;
+  canValidate?: boolean;
+  canCancel?: boolean;
 }) {
   const { addToast } = useToast();
   return (
@@ -541,12 +647,16 @@ function InvoiceDetail({
       <div className="sales__detail-actions">
         {invoice.status === 'DRAFT' && (
           <>
-            <Button onClick={onValidate}>
-              <CheckCircle size={16} /> Valider
-            </Button>
-            <Button variant="danger" onClick={onCancel}>
-              <XCircle size={16} /> Annuler
-            </Button>
+            {canValidate && (
+              <Button onClick={onValidate}>
+                <CheckCircle size={16} /> Valider
+              </Button>
+            )}
+            {canCancel && (
+              <Button variant="danger" onClick={onCancel}>
+                <XCircle size={16} /> Annuler
+              </Button>
+            )}
           </>
         )}
         {(invoice.status === 'VALIDATED' || invoice.status === 'PARTIALLY_PAID') && (
@@ -554,9 +664,11 @@ function InvoiceDetail({
             <Button onClick={onPayment}>
               <CreditCard size={16} /> Paiement
             </Button>
-            <Button variant="danger" onClick={onCancel}>
-              <XCircle size={16} /> Annuler
-            </Button>
+            {canCancel && (
+              <Button variant="danger" onClick={onCancel}>
+                <XCircle size={16} /> Annuler
+              </Button>
+            )}
           </>
         )}
       </div>

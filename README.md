@@ -70,7 +70,7 @@ L'application sera accessible sur `http://localhost`.
 
 ```bash
 cd apps/api
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 **Web :**
@@ -86,7 +86,7 @@ npm run dev
 ```bash
 # API
 cd apps/api
-./mvnw test
+mvn test
 
 # Web
 cd apps/web
@@ -98,7 +98,7 @@ Couverture minimale ciblee : 70%.
 ## Securite
 
 - Authentification par JWT (cookies HttpOnly).
-- Hachage des mots de passe avec Argon2id.
+- Hachage des mots de passe avec BCrypt (12 rounds).
 - RBAC strict avec isolation par organisation.
 - Rate limiting sur les endpoints sensibles.
 - Headers de securite (CSP, HSTS) via Caddy.
@@ -108,12 +108,15 @@ Voir [SECURITY.md](SECURITY.md) pour le detail.
 ## Feuille de route
 
 - [x] Phase 0 : Squelette du projet et CI
-- [ ] Phase 1 : Authentification et gestion des organisations
-- [ ] Phase 2 : Catalogue produits et gestion de stock
-- [ ] Phase 3 : Facturation et paiements
-- [ ] Phase 4 : Tableau de bord et rapports
-- [ ] Phase 5 : Notifications et alertes
-- [ ] Phase 6 : Export PDF et integration mobile
+- [x] Phase 1 : Authentification et gestion des organisations
+- [x] Phase 2 : Catalogue produits et gestion de stock
+- [x] Phase 3 : Facturation et paiements
+- [x] Phase 4 : Tableau de bord et rapports
+- [x] Phase 5 : Notifications et alertes
+- [x] Phase 6 : Export PDF (factures et bons de livraison)
+- [x] RBAC frontend : navigation et actions filtrees par role
+- [x] Inscription utilisateur et creation d'organisation
+- [x] Infrastructure Docker (Dockerfiles, Caddyfile prod)
 
 ## Licence
 

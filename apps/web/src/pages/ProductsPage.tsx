@@ -25,6 +25,7 @@ import type {
 import { formatCFA } from '../lib/format';
 import { useDebounce } from '../lib/hooks';
 import { useAuth } from '../contexts/AuthContext';
+import { highestRole, can } from '../lib/rbac';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
@@ -64,7 +65,10 @@ type ProductFormData = z.infer<typeof productSchema>;
 
 export default function ProductsPage() {
   const { user } = useAuth();
-  void user; // auth context used for presence
+  const role = highestRole(user?.shops?.map((s) => s.role) ?? []);
+  const canCreate = can(role, 'products:create');
+  const canEdit = can(role, 'products:edit');
+  const canDelete = can(role, 'products:delete');
 
   const { toast } = useToast();
 
@@ -230,9 +234,11 @@ export default function ProductsPage() {
       {/* ── Header ── */}
       <div className="products__header">
         <h1 className="products__title">Produits</h1>
-        <Button variant="primary" size="md" icon={<Plus size={18} />} onClick={openAdd}>
-          Ajouter un produit
-        </Button>
+        {canCreate && (
+          <Button variant="primary" size="md" icon={<Plus size={18} />} onClick={openAdd}>
+            Ajouter un produit
+          </Button>
+        )}
       </div>
 
       {/* ── Filters ── */}
@@ -298,7 +304,7 @@ export default function ProductsPage() {
                   ? 'Aucun produit ne correspond a vos filtres.'
                   : 'Commencez par ajouter votre premier produit.'}
               </p>
-              {!debouncedSearch && !categoryFilter && (
+              {!debouncedSearch && !categoryFilter && canCreate && (
                 <Button variant="primary" size="sm" icon={<Plus size={16} />} onClick={openAdd}>
                   Ajouter un produit
                 </Button>
@@ -317,7 +323,7 @@ export default function ProductsPage() {
                       <th>Prix de vente</th>
                       <th>Stock</th>
                       <th>Statut</th>
-                      <th className="products__table th--actions">Actions</th>
+                      {(canEdit || canDelete) && <th className="products__table th--actions">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -343,24 +349,30 @@ export default function ProductsPage() {
                             {p.isActive ? 'Actif' : 'Inactif'}
                           </Badge>
                         </td>
-                        <td>
-                          <div className="products__actions">
-                            <button
-                              className="products__action-btn"
-                              onClick={() => openEdit(p)}
-                              aria-label="Modifier"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                            <button
-                              className="products__action-btn products__action-btn--danger"
-                              onClick={() => setDeleteTarget(p)}
-                              aria-label="Supprimer"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
+                        {(canEdit || canDelete) && (
+                          <td>
+                            <div className="products__actions">
+                              {canEdit && (
+                                <button
+                                  className="products__action-btn"
+                                  onClick={() => openEdit(p)}
+                                  aria-label="Modifier"
+                                >
+                                  <Pencil size={16} />
+                                </button>
+                              )}
+                              {canDelete && (
+                                <button
+                                  className="products__action-btn products__action-btn--danger"
+                                  onClick={() => setDeleteTarget(p)}
+                                  aria-label="Supprimer"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -401,22 +413,28 @@ export default function ProductsPage() {
                       <span>Stock</span>
                       <span className="products__card-row-value">{p.currentStock}</span>
                     </div>
-                    <div className="products__actions products__actions--mobile">
-                      <button
-                        className="products__action-btn"
-                        onClick={() => openEdit(p)}
-                        aria-label="Modifier"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        className="products__action-btn products__action-btn--danger"
-                        onClick={() => setDeleteTarget(p)}
-                        aria-label="Supprimer"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    {(canEdit || canDelete) && (
+                      <div className="products__actions products__actions--mobile">
+                        {canEdit && (
+                          <button
+                            className="products__action-btn"
+                            onClick={() => openEdit(p)}
+                            aria-label="Modifier"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            className="products__action-btn products__action-btn--danger"
+                            onClick={() => setDeleteTarget(p)}
+                            aria-label="Supprimer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

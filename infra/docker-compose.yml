@@ -37,6 +37,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev_secret_change_in_production}
       JWT_EXPIRY: ${JWT_EXPIRY:-15m}
       REFRESH_EXPIRY: ${REFRESH_EXPIRY:-7d}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
     ports:
       - "8080:8080"
 
@@ -47,9 +48,7 @@ services:
     container_name: kassa-web
     restart: unless-stopped
     ports:
-      - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:8080
+      - "3000:80"
 
   caddy:
     image: caddy:2-alpine

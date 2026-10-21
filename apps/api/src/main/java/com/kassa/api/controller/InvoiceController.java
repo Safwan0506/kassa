@@ -94,7 +94,8 @@ public class InvoiceController {
         securityHelper.requireRole(authentication,
                 ShopRole.PROPRIETAIRE, ShopRole.GERANT);
         UUID orgId = securityHelper.getCurrentOrganizationId(authentication);
-        return ResponseEntity.ok(invoiceService.cancel(id, orgId));
+        UUID userId = securityHelper.getCurrentUserId(authentication);
+        return ResponseEntity.ok(invoiceService.cancel(id, orgId, userId));
     }
 
     @PostMapping("/payments")

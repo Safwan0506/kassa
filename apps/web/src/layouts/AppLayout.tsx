@@ -13,6 +13,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { highestRole, canAccessNav } from '../lib/rbac';
 import NotificationCenter from '../components/NotificationCenter';
 import './AppLayout.css';
 
@@ -21,8 +22,8 @@ const NAV_ITEMS = [
   { to: '/sales', icon: ShoppingCart, label: 'Ventes' },
   { to: '/products', icon: Package, label: 'Produits' },
   { to: '/stock', icon: Warehouse, label: 'Stock' },
+  { to: '/customers', icon: Users, label: 'Clients' },
   { to: '/reports', icon: BarChart3, label: 'Rapports' },
-  { to: '/team', icon: Users, label: 'Equipe' },
 ] as const;
 
 function getInitials(name: string): string {
@@ -47,6 +48,8 @@ function formatRole(role: string): string {
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const role = highestRole(user?.shops?.map((s) => s.role) ?? []);
+  const visibleNav = NAV_ITEMS.filter((item) => canAccessNav(role, item.to));
 
   const handleLogout = async () => {
     try {
@@ -82,7 +85,7 @@ export default function AppLayout() {
         </div>
 
         <nav className="sidebar__nav">
-          {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+          {visibleNav.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
@@ -154,7 +157,7 @@ export default function AppLayout() {
 
       {/* ── Bottom Tab Bar (mobile) ── */}
       <nav className="bottom-bar">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+        {visibleNav.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}

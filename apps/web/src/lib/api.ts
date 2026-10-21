@@ -3,11 +3,14 @@ export interface ApiError {
   message: string;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(endpoint, {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const response = await fetch(url, {
     ...options,
     credentials: 'include',
     headers: {
@@ -403,7 +406,23 @@ export interface NotificationCount {
 
 /* ── API namespaces ── */
 
+export interface RegisterDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  organizationName: string;
+  shopName: string;
+}
+
 export const authApi = {
+  register(data: RegisterDto) {
+    return request<LoginResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
   login(email: string, password: string) {
     return request<LoginResponse>('/api/auth/login', {
       method: 'POST',
@@ -483,7 +502,8 @@ export const suppliersApi = {
 export const productsApi = {
   list(filters: ProductFilters = {}) {
     const params = new URLSearchParams();
-    if (filters.page !== undefined) params.set('page', String(filters.page));
+    // Backend uses 0-indexed pages, frontend uses 1-indexed
+    if (filters.page !== undefined) params.set('page', String(Math.max(0, filters.page - 1)));
     if (filters.limit !== undefined) params.set('limit', String(filters.limit));
     if (filters.search) params.set('search', filters.search);
     if (filters.categoryId) params.set('categoryId', filters.categoryId);

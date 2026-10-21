@@ -138,7 +138,7 @@ public class InvoiceService {
     }
 
     @Transactional
-    public InvoiceResponse cancel(UUID id, UUID organizationId) {
+    public InvoiceResponse cancel(UUID id, UUID organizationId, UUID userId) {
         Invoice invoice = invoiceRepository.findByIdAndOrganizationId(id, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", id.toString()));
 
@@ -148,6 +148,34 @@ public class InvoiceService {
 
         if (invoice.getStatus() == InvoiceStatus.PAID) {
             throw new BusinessException("Cannot cancel a fully paid invoice", HttpStatus.BAD_REQUEST);
+        }
+
+        boolean stockWasDeducted = invoice.getStatus() == InvoiceStatus.VALIDATED
+                || invoice.getStatus() == InvoiceStatus.PARTIALLY_PAID;
+
+        if (stockWasDeducted) {
+            for (InvoiceLine line : invoice.getLines()) {
+                UUID shopId = invoice.getShop().getId();
+                UUID productId = line.getProduct().getId();
+
+                StockLevel stockLevel = stockLevelRepository.findByShopIdAndProductId(shopId, productId)
+                        .orElse(null);
+
+                if (stockLevel != null) {
+                    stockLevel.setQuantity(stockLevel.getQuantity() + line.getQuantity());
+                    stockLevelRepository.save(stockLevel);
+                }
+
+                StockMovement movement = StockMovement.builder()
+                        .shop(invoice.getShop())
+                        .product(line.getProduct())
+                        .type(MovementType.ENTRY)
+                        .quantity(line.getQuantity())
+                        .reason("Annulation facture " + invoice.getInvoiceNumber())
+                        .createdBy(userId)
+                        .build();
+                stockMovementRepository.save(movement);
+            }
         }
 
         invoice.setStatus(InvoiceStatus.CANCELLED);

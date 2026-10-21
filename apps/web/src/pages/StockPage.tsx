@@ -26,6 +26,7 @@ import type {
 import { formatDate } from '../lib/format';
 import { useDebounce } from '../lib/hooks';
 import { useAuth } from '../contexts/AuthContext';
+import { highestRole, can } from '../lib/rbac';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
@@ -101,8 +102,12 @@ type TransferFormData = z.infer<typeof transferSchema>;
 export default function StockPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const shopId = user?.shops?.[0]?.shopId ?? '';
   const shops = user?.shops ?? [];
+  const role = highestRole(shops.map((s) => s.role));
+  const canCreateMovement = can(role, 'stock:create');
+  const canAdjust = can(role, 'stock:adjust');
+  const [selectedShopId, setSelectedShopId] = useState(shops[0]?.shopId ?? '');
+  const shopId = selectedShopId || (shops[0]?.shopId ?? '');
 
   /* ── Tab state ── */
   const [activeTab, setActiveTab] = useState<TabKey>('levels');
@@ -257,6 +262,17 @@ export default function StockPage() {
       {/* ── Header ── */}
       <div className="stock__header">
         <h1 className="stock__title">Stock</h1>
+        {shops.length > 1 && (
+          <select
+            className="stock__shop-select"
+            value={selectedShopId}
+            onChange={(e) => setSelectedShopId(e.target.value)}
+          >
+            {shops.map((s) => (
+              <option key={s.shopId} value={s.shopId}>{s.shopName}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* ── Tabs ── */}
@@ -411,9 +427,11 @@ export default function StockPage() {
                 placeholder="Au"
               />
             </div>
-            <Button variant="primary" size="md" icon={<Plus size={18} />} onClick={openMovementModal}>
-              Nouveau mouvement
-            </Button>
+            {canCreateMovement && (
+              <Button variant="primary" size="md" icon={<Plus size={18} />} onClick={openMovementModal}>
+                Nouveau mouvement
+              </Button>
+            )}
           </div>
 
           {loading ? (
@@ -522,14 +540,16 @@ export default function StockPage() {
         <>
           <div className="stock__toolbar">
             <div className="stock__toolbar-left" />
-            <Button
-              variant="primary"
-              size="md"
-              icon={<ArrowRightLeft size={18} />}
-              onClick={openTransferModal}
-            >
-              Nouveau transfert
-            </Button>
+            {canAdjust && (
+              <Button
+                variant="primary"
+                size="md"
+                icon={<ArrowRightLeft size={18} />}
+                onClick={openTransferModal}
+              >
+                Nouveau transfert
+              </Button>
+            )}
           </div>
 
           {loading ? (
@@ -652,7 +672,7 @@ export default function StockPage() {
             <select id="mv-type" {...movementForm.register('type')}>
               <option value="ENTRY">Entree</option>
               <option value="EXIT">Sortie</option>
-              <option value="ADJUSTMENT">Ajustement</option>
+              {canAdjust && <option value="ADJUSTMENT">Ajustement</option>}
             </select>
             {movementForm.formState.errors.type && (
               <span className="stock__form-field-error">

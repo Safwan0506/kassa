@@ -2,7 +2,7 @@ spring:
   application:
     name: kassa-api
   profiles:
-    active: dev
+    active: ${APP_ENV:dev}
 
   datasource:
     url: jdbc:h2:mem:kassa;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
@@ -21,8 +21,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
-    clean-disabled: false
-    clean-on-validation-error: true
+    clean-disabled: true
+    clean-on-validation-error: false
 
 server:
   port: 8080
@@ -30,6 +30,13 @@ server:
     context-path: /
 
 kassa:
+  cookie:
+    secure: false
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  rate-limit:
+    requests-per-minute: ${RATE_LIMIT_RPM:60}
+    login-requests-per-minute: ${RATE_LIMIT_LOGIN_RPM:10}
   jwt:
     secret: ${JWT_SECRET:kassa-dev-secret-key-that-is-at-least-32-bytes-long-for-hmac-sha256}
 

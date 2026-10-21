@@ -3,12 +3,9 @@ package com.kassa.api.auth;
 import com.kassa.api.audit.AuditService;
 import com.kassa.api.auth.dto.AuthResponse;
 import com.kassa.api.auth.dto.UserInfo;
-import com.kassa.api.entity.AppUser;
-import com.kassa.api.entity.RefreshToken;
-import com.kassa.api.entity.UserShop;
-import com.kassa.api.repository.AppUserRepository;
-import com.kassa.api.repository.RefreshTokenRepository;
-import com.kassa.api.repository.UserShopRepository;
+import com.kassa.api.auth.dto.RegisterRequest;
+import com.kassa.api.entity.*;
+import com.kassa.api.repository.*;
 import com.kassa.api.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +28,8 @@ public class AuthService {
     private final AppUserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserShopRepository userShopRepository;
+    private final OrganizationRepository organizationRepository;
+    private final ShopRepository shopRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
@@ -126,6 +125,58 @@ public class AuthService {
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException("User not found"));
         return buildUserInfo(user);
+    }
+
+    @Transactional
+    public AuthResult register(RegisterRequest req, String ipAddress) {
+        if (userRepository.existsByEmail(req.getEmail())) {
+            throw new AuthException("Un compte avec cet email existe deja");
+        }
+
+        String slug = req.getOrganizationName().toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
+        if (organizationRepository.findBySlug(slug).isPresent()) {
+            slug = slug + "-" + UUID.randomUUID().toString().substring(0, 6);
+        }
+
+        Organization org = organizationRepository.save(Organization.builder()
+                .name(req.getOrganizationName())
+                .slug(slug)
+                .build());
+
+        Shop shop = shopRepository.save(Shop.builder()
+                .name(req.getShopName())
+                .organization(org)
+                .build());
+
+        AppUser user = userRepository.save(AppUser.builder()
+                .email(req.getEmail())
+                .passwordHash(passwordEncoder.encode(req.getPassword()))
+                .firstName(req.getFirstName())
+                .lastName(req.getLastName())
+                .organization(org)
+                .active(true)
+                .build());
+
+        userShopRepository.save(UserShop.builder()
+                .user(user)
+                .shop(shop)
+                .role(ShopRole.PROPRIETAIRE)
+                .build());
+
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), org.getId());
+        RefreshToken refreshToken = createRefreshToken(user);
+        UserInfo userInfo = buildUserInfo(user);
+
+        auditService.log(user.getId(), "REGISTER", "AppUser", user.getId(), null, ipAddress);
+
+        AuthResponse response = AuthResponse.builder()
+                .message("Registration successful")
+                .user(userInfo)
+                .build();
+
+        return new AuthResult(accessToken, refreshToken.getToken(), response);
     }
 
     private void handleFailedAttempt(AppUser user, String ipAddress) {

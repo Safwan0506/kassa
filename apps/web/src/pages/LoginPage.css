@@ -270,6 +270,16 @@
   margin-top: var(--space-2);
 }
 
+.login-form__link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-form__link:hover {
+  text-decoration: underline;
+}
+
 /* ── Responsive ── */
 
 @media (min-width: 1024px) {

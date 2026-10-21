@@ -2,10 +2,12 @@ package com.kassa.api.auth;
 
 import com.kassa.api.auth.dto.AuthResponse;
 import com.kassa.api.auth.dto.LoginRequest;
+import com.kassa.api.auth.dto.RegisterRequest;
 import com.kassa.api.auth.dto.UserInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,21 @@ public class AuthController {
     private static final Duration REFRESH_COOKIE_MAX_AGE = Duration.ofDays(7);
 
     private final AuthService authService;
+
+    @Value("${kassa.cookie.secure:false}")
+    private boolean secureCookie;
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request,
+                                                 HttpServletRequest httpRequest) {
+        String ip = extractIp(httpRequest);
+        AuthService.AuthResult result = authService.register(request, ip);
+
+        return ResponseEntity.status(201)
+                .header(HttpHeaders.SET_COOKIE, buildAccessCookie(result.accessToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(result.refreshToken()).toString())
+                .body(result.response());
+    }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
@@ -73,7 +90,7 @@ public class AuthController {
 
         ResponseCookie clearAccess = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookie)
                 .sameSite("Strict")
                 .path("/")
                 .maxAge(0)
@@ -81,7 +98,7 @@ public class AuthController {
 
         ResponseCookie clearRefresh = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookie)
                 .sameSite("Strict")
                 .path("/api/auth")
                 .maxAge(0)
@@ -103,7 +120,7 @@ public class AuthController {
     private ResponseCookie buildAccessCookie(String token) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookie)
                 .sameSite("Strict")
                 .path("/")
                 .maxAge(ACCESS_COOKIE_MAX_AGE)
@@ -113,7 +130,7 @@ public class AuthController {
     private ResponseCookie buildRefreshCookie(String token) {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, token)
                 .httpOnly(true)
-                .secure(true)
+                .secure(secureCookie)
                 .sameSite("Strict")
                 .path("/api/auth")
                 .maxAge(REFRESH_COOKIE_MAX_AGE)

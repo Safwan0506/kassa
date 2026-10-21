@@ -1,0 +1,5 @@
+apps/web
+node_modules
+.git
+README.md
+TESTS.md

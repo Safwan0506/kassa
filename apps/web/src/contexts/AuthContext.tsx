@@ -7,13 +7,14 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { authApi, type User } from '../lib/api';
+import { authApi, type User, type RegisterDto } from '../lib/api';
 
 interface AuthState {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (data: RegisterDto) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -48,6 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(loggedIn);
   }, []);
 
+  const register = useCallback(async (data: RegisterDto) => {
+    const { user: registered } = await authApi.register(data);
+    setUser(registered);
+  }, []);
+
   const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
@@ -59,9 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       isAuthenticated: user !== null,
       login,
+      register,
       logout,
     }),
-    [user, loading, login, logout],
+    [user, loading, login, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

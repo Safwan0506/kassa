@@ -19,9 +19,9 @@
 		reverse_proxy api:8080
 	}
 
-	# Frontend : proxy vers le serveur Vite (dev) ou fichiers statiques (prod)
+	# Frontend : proxy vers nginx
 	handle {
-		reverse_proxy web:5173
+		reverse_proxy web:80
 	}
 
 	log {

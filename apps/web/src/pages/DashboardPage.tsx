@@ -105,9 +105,12 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const shopId = user?.shops?.[0]?.shopId ?? '';
+  const shops = user?.shops ?? [];
+  const [selectedShopId, setSelectedShopId] = useState(shops[0]?.shopId ?? '');
+  const shopId = selectedShopId || (shops[0]?.shopId ?? '');
   const firstName = user?.firstName ?? 'Utilisateur';
-  const shopName = user?.shops?.[0]?.shopName ?? 'Boutique principale';
+  const currentShop = shops.find((s) => s.shopId === shopId);
+  const shopName = currentShop?.shopName ?? 'Boutique principale';
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
@@ -147,8 +150,21 @@ export default function DashboardPage() {
     <div className="dashboard">
       {/* ── Greeting ── */}
       <div className="dashboard__greeting">
-        <h1>Bonjour, {firstName}</h1>
-        <p>Bienvenue sur Kassa &mdash; {shopName}</p>
+        <div>
+          <h1>Bonjour, {firstName}</h1>
+          <p>Bienvenue sur Kassa &mdash; {shopName}</p>
+        </div>
+        {shops.length > 1 && (
+          <select
+            className="dashboard__shop-select"
+            value={selectedShopId}
+            onChange={(e) => setSelectedShopId(e.target.value)}
+          >
+            {shops.map((s) => (
+              <option key={s.shopId} value={s.shopId}>{s.shopName}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* ── KPI Cards ── */}

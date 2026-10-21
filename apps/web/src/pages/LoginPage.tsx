@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -163,7 +163,7 @@ export default function LoginPage() {
           </form>
 
           <p className="login-form__footer">
-            Kassa &middot; Gestion de stock multi-boutiques
+            Pas encore de compte ? <Link to="/register" className="login-form__link">S'inscrire</Link>
           </p>
         </div>
       </div>

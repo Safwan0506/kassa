@@ -1,15 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { highestRole, canAccessNav } from './lib/rbac';
 import { ToastProvider } from './components/ui/Toast';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import IntroPage from './pages/IntroPage';
 import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import StockPage from './pages/StockPage';
 import SalesPage from './pages/SalesPage';
 import ReportsPage from './pages/ReportsPage';
+import CustomersPage from './pages/CustomersPage';
 import type { ReactNode } from 'react';
 
 const queryClient = new QueryClient({
@@ -40,6 +43,15 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  return <>{children}</>;
+}
+
+function RoleRoute({ path, children }: { path: string; children: ReactNode }) {
+  const { user } = useAuth();
+  const role = highestRole(user?.shops?.map((s) => s.role) ?? []);
+  if (!canAccessNav(role, path)) {
+    return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -74,6 +86,14 @@ export default function App() {
                   </GuestRoute>
                 }
               />
+              <Route
+                path="/register"
+                element={
+                  <GuestRoute>
+                    <RegisterPage />
+                  </GuestRoute>
+                }
+              />
 
               {/* Protected */}
               <Route
@@ -87,8 +107,9 @@ export default function App() {
                 <Route path="/sales" element={<SalesPage />} />
                 <Route path="/products" element={<ProductsPage />} />
                 <Route path="/stock" element={<StockPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/team" element={<PlaceholderPage title="Equipe" />} />
+                <Route path="/reports" element={<RoleRoute path="/reports"><ReportsPage /></RoleRoute>} />
+                <Route path="/customers" element={<CustomersPage />} />
+                <Route path="/team" element={<RoleRoute path="/team"><PlaceholderPage title="Equipe" /></RoleRoute>} />
               </Route>
 
               {/* Fallback */}

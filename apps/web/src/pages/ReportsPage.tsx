@@ -33,7 +33,9 @@ function getDefaultDates() {
 export default function ReportsPage() {
   const { user } = useAuth();
   const { addToast } = useToast();
-  const shopId = user?.shops?.[0]?.shopId || '';
+  const shops = user?.shops ?? [];
+  const [selectedShopId, setSelectedShopId] = useState(shops[0]?.shopId ?? '');
+  const shopId = selectedShopId || shops[0]?.shopId || '';
 
   const [tab, setTab] = useState<TabKey>('revenue');
   const defaults = getDefaultDates();
@@ -113,6 +115,17 @@ export default function ReportsPage() {
     <div className="reports">
       <div className="reports__header">
         <h1 className="reports__title">Rapports</h1>
+        {shops.length > 1 && (
+          <select
+            className="reports__shop-select"
+            value={selectedShopId}
+            onChange={(e) => setSelectedShopId(e.target.value)}
+          >
+            {shops.map((s) => (
+              <option key={s.shopId} value={s.shopId}>{s.shopName}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Filters */}
