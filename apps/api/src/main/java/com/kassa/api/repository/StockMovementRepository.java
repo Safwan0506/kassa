@@ -18,7 +18,9 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, UU
 
     long countByShopIdAndCreatedAtAfter(UUID shopId, Instant after);
 
-    List<StockMovement> findTop10ByShopIdOrderByCreatedAtDesc(UUID shopId);
+    @Query("SELECT m FROM StockMovement m LEFT JOIN FETCH m.product LEFT JOIN FETCH m.shop " +
+           "WHERE m.shop.id = :shopId ORDER BY m.createdAt DESC LIMIT 10")
+    List<StockMovement> findTop10ByShopIdOrderByCreatedAtDesc(@Param("shopId") UUID shopId);
 
     List<StockMovement> findByShopIdAndCreatedAtBetweenOrderByCreatedAtAsc(UUID shopId, Instant from, Instant to);
 

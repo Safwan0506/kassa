@@ -24,5 +24,6 @@ public class StockMovementResponse {
     private String reason;
     private UUID referenceId;
     private UUID createdBy;
+    private String userName;
     private Instant createdAt;
 }

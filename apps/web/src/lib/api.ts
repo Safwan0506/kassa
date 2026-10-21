@@ -528,7 +528,7 @@ export const productsApi = {
 
 export const stockApi = {
   getLevels(shopId: string) {
-    return request<StockLevel[]>(`/api/stock/levels/${shopId}`);
+    return request<StockLevel[]>(`/api/stock/shops/${shopId}`);
   },
 
   getMovements(shopId: string, params?: { type?: MovementType; from?: string; to?: string }) {

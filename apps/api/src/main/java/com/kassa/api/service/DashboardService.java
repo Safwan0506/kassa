@@ -3,7 +3,9 @@ package com.kassa.api.service;
 import com.kassa.api.dto.dashboard.DashboardStatsResponse;
 import com.kassa.api.dto.dashboard.StockAlertResponse;
 import com.kassa.api.dto.stock.StockMovementResponse;
+import com.kassa.api.entity.AppUser;
 import com.kassa.api.entity.StockLevel;
+import com.kassa.api.repository.AppUserRepository;
 import com.kassa.api.repository.StockLevelRepository;
 import com.kassa.api.repository.StockMovementRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,7 @@ public class DashboardService {
 
     private final StockLevelRepository stockLevelRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final AppUserRepository appUserRepository;
 
     @Transactional(readOnly = true)
     public DashboardStatsResponse getStats(UUID shopId) {
@@ -65,8 +70,22 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public List<StockMovementResponse> getRecentMovements(UUID shopId) {
-        return stockMovementRepository.findTop10ByShopIdOrderByCreatedAtDesc(shopId)
-                .stream()
+        var movements = stockMovementRepository.findTop10ByShopIdOrderByCreatedAtDesc(shopId);
+
+        // Get all user IDs
+        var userIds = movements.stream()
+                .map(m -> m.getCreatedBy())
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+
+        // Fetch users in one query
+        Map<UUID, String> userNames = appUserRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(
+                        AppUser::getId,
+                        u -> u.getFirstName() + " " + u.getLastName()
+                ));
+
+        return movements.stream()
                 .map(m -> StockMovementResponse.builder()
                         .id(m.getId())
                         .shopId(m.getShop().getId())
@@ -78,6 +97,7 @@ public class DashboardService {
                         .reason(m.getReason())
                         .referenceId(m.getReferenceId())
                         .createdBy(m.getCreatedBy())
+                        .userName(m.getCreatedBy() != null ? userNames.getOrDefault(m.getCreatedBy(), "Inconnu") : "Système")
                         .createdAt(m.getCreatedAt())
                         .build())
                 .toList();
