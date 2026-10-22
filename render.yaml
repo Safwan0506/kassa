@@ -1,11 +1,9 @@
 services:
   - type: web
     name: kassa-api
-    env: java
+    image:
+      context: ./apps/api
     plan: free
-    buildCommand: mvn clean package -DskipTests -q
-    startCommand: java -jar target/api-0.1.0-SNAPSHOT.jar
-    rootDir: apps/api
     envVars:
       - key: APP_ENV
         value: prod
