@@ -78,10 +78,8 @@ function StockStatus({ quantity, threshold }: { quantity: number; threshold: num
 
 const movementSchema = z.object({
   productId: z.string().min(1, 'Le produit est requis'),
-  type: z.enum(['ENTRY', 'EXIT', 'ADJUSTMENT'] as const, {
-    message: 'Le type est requis',
-  }),
-  quantity: z.coerce.number().min(1, 'La quantite doit etre superieure a 0'),
+  type: z.enum(['ENTRY', 'EXIT', 'ADJUSTMENT']),
+  quantity: z.number().min(1, 'La quantite doit etre superieure a 0'),
   reason: z.string().optional(),
 });
 
@@ -91,7 +89,7 @@ const transferSchema = z.object({
   productId: z.string().min(1, 'Le produit est requis'),
   fromShopId: z.string().min(1, 'La boutique source est requise'),
   toShopId: z.string().min(1, 'La boutique destination est requise'),
-  quantity: z.coerce.number().min(1, 'La quantite doit etre superieure a 0'),
+  quantity: z.number().min(1, 'La quantite doit etre superieure a 0'),
   reason: z.string().optional(),
 });
 
@@ -135,12 +133,12 @@ export default function StockPage() {
   const [scanTarget, setScanTarget] = useState<'movement' | 'transfer'>('movement');
 
   /* ── Forms ── */
-  const movementForm = useForm<MovementFormData>({
+  const movementForm = useForm({
     resolver: zodResolver(movementSchema),
-    defaultValues: { productId: '', type: 'ENTRY', quantity: 1, reason: '' },
+    defaultValues: { productId: '', type: 'ENTRY' as const, quantity: 1, reason: '' },
   });
 
-  const transferForm = useForm<TransferFormData>({
+  const transferForm = useForm({
     resolver: zodResolver(transferSchema),
     defaultValues: { productId: '', fromShopId: shopId, toShopId: '', quantity: 1, reason: '' },
   });
