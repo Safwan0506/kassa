@@ -4,7 +4,8 @@ services:
     env: java
     plan: free
     buildCommand: mvn clean package -DskipTests -q
-    startCommand: java -jar apps/api/target/api-0.1.0-SNAPSHOT.jar
+    startCommand: java -jar target/api-0.1.0-SNAPSHOT.jar
+    rootDir: apps/api
     envVars:
       - key: APP_ENV
         value: prod
